@@ -8,20 +8,11 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
-import tech.mistermel.easierbackup.util.NMSUtil;
-
 public class CommandHandler implements CommandExecutor, TabCompleter {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		EasierBackup.instance().getLogger().info("Saving world...");
-		NMSUtil.setSavingEnabled(false);
-		NMSUtil.saveAll(true, true, true);
-		EasierBackup.instance().getLogger().info("Doing backup...");
-		// backup here
-		NMSUtil.setSavingEnabled(true);
-		EasierBackup.instance().getLogger().info("Backup finished!");
-		
+		EasierBackup.instance().doBackup();
 		return true;
 	}
 	

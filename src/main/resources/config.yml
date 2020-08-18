@@ -1,0 +1,20 @@
+file-name: 'backup-%%date%%.zip'
+# See https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+date-format: 'dd-MM-yyyy-HHmm'
+
+# The higher this number is, the more the zip file will be compressed.
+# A higher compression level means the zip file will be smaller, but it
+# will also take longer to generate.
+# The maximum compression level is 9.
+compression-level: 9
+
+# The maximum size of the backup folder. If the backup folder exceeds this size,
+# the oldest backup is deleted. This amount is in GB.
+# You can also set this to -1 to disable automatic deletion of old backups.
+max-backup-folder-size: 10
+
+exempt:
+  - 'backups'
+  - 'logs'
+  - 'cache'
+  - 'server.jar'
