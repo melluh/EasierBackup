@@ -1,0 +1,8 @@
+name: EasierBackup
+version: ${project.version}
+author: MisterMel
+main: tech.mistermel.easierbackup.EasierBackup
+commands:
+  easierbackup:
+    description: Main command
+    aliases: ['backup']
