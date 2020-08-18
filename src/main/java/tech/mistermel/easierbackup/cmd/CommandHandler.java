@@ -6,15 +6,17 @@ import org.bukkit.command.CommandSender;
 
 public class CommandHandler extends CommandBranch implements CommandExecutor  {
 
+	public CommandHandler() {
+		this.setUsage("/backup");
+		
+		this.addSubCommand("dropbox", new DropboxSubCommand());
+		this.addSubCommand("create", new CreateSubCommand());
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		onCommand(sender, args);
 		return true;
-	}
-	
-	@Override
-	public String getDescription() {
-		return null;
 	}
 	
 }

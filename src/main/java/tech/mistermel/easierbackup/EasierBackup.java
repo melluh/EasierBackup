@@ -19,6 +19,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import tech.mistermel.easierbackup.cmd.CommandHandler;
+import tech.mistermel.easierbackup.uploader.DropboxUploader;
+
 public class EasierBackup extends JavaPlugin {
 
 	private static EasierBackup instance;
@@ -35,6 +38,8 @@ public class EasierBackup extends JavaPlugin {
 	private List<File> exemptFiles = new ArrayList<>();
 
 	private boolean isRunning;
+	
+	private DropboxUploader dropboxUploader;
 
 	@Override
 	public void onEnable() {
@@ -71,6 +76,8 @@ public class EasierBackup extends JavaPlugin {
 			this.maxBackupSize = (long) (configMaxBackupSize * 1073741824);
 			this.getLogger().info("Max backup folder size is set to " + readableFileSize(maxBackupSize));
 		}
+		
+		this.dropboxUploader = new DropboxUploader(this.getConfig().getConfigurationSection("dropbox"));
 
 		this.getCommand("easierbackup").setExecutor(new CommandHandler());
 	}
@@ -245,6 +252,10 @@ public class EasierBackup extends JavaPlugin {
 	
 	public boolean isRunning() {
 		return isRunning;
+	}
+	
+	public DropboxUploader getDropboxUploader() {
+		return dropboxUploader;
 	}
 
 	public static EasierBackup instance() {
