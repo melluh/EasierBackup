@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.craftbukkit.libs.org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONObject;
@@ -16,6 +17,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import tech.mistermel.easierbackup.EasierBackup;
 
 public class DropboxUploader implements Uploader {
 	
@@ -32,7 +34,11 @@ public class DropboxUploader implements Uploader {
 		this.accessToken = section.getString("accessToken");
 	}
 	
-	public String getBearerToken(String authorizationCode) {
+	public AuthenticationResult getBearerToken(String authorizationCode) {
+		if(Bukkit.isPrimaryThread()) {
+			EasierBackup.instance().getLogger().warning("getBearerToken() is being run on the primary thread!");
+		}
+		
 		RequestBody body = new FormBody.Builder()
 				.add("code", authorizationCode)
 				.add("code_verifier", codeVerifier)
@@ -49,11 +55,18 @@ public class DropboxUploader implements Uploader {
 			Response response = httpClient.newCall(request).execute();
 			
 			if(!response.isSuccessful()) {
-				return null;
+				return new AuthenticationResult(false, null, null, 0);
 			}
 			
 			JSONObject json = (JSONObject) new JSONParser().parse(response.body().string());
-			return (String) json.get("access_token");
+			response.close();
+			
+			String accessToken = (String) json.get("access_token");
+			String refreshToken = (String) json.get("refresh_token");
+			long expiresIn = (long) json.get("expires_in");
+			
+			AuthenticationResult result = new AuthenticationResult(true, accessToken, refreshToken, System.currentTimeMillis() + expiresIn);
+			return result;
 		} catch (IOException | ParseException e) {
 			e.printStackTrace();
 			return null;
@@ -86,6 +99,38 @@ public class DropboxUploader implements Uploader {
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public class AuthenticationResult {
+		
+		private boolean success;
+		
+		private String bearerToken, refreshToken;
+		private long expiryTime;
+		
+		public AuthenticationResult(boolean success, String bearerToken, String refreshToken, long expiryTime) {
+			this.success = success;
+			this.bearerToken = bearerToken;
+			this.refreshToken = refreshToken;
+			this.expiryTime = expiryTime;
+		}
+		
+		public boolean isSuccess() {
+			return success;
+		}
+		
+		public String getBearerToken() {
+			return bearerToken;
+		}
+		
+		public String getRefreshToken() {
+			return refreshToken;
+		}
+		
+		public long getExpiryTime() {
+			return expiryTime;
+		}
+		
 	}
 	
 }

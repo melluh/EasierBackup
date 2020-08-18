@@ -1,5 +1,10 @@
+# The format which the backup file names follow.
+# You can use %%date%% here to insert the date. The format of the date can be
+# changed below.
 file-name: 'backup-%%date%%.zip'
-# See https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+
+# The format which dates in the backup file names follow.
+# See https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html for more info.
 date-format: 'dd-MM-yyyy-HHmm'
 
 # The higher this number is, the more the zip file will be compressed.
@@ -13,8 +18,19 @@ compression-level: 9
 # You can also set this to -1 to disable automatic deletion of old backups.
 max-backup-folder-size: 10
 
+# The files and folders specified here will not be included in a backup.
+# You can add more entries, but removing the ones included by default is
+# not recommended.
 exempt:
   - 'backups'
   - 'logs'
   - 'cache'
   - 'server.jar'
+
+# This section is used for Dropbox uploads.
+# To set it up, use /backup dropbox and follow the instructions there.
+dropbox:
+  # These two tokens are automatically filled in.
+  # DO NOT CHANGE THEM (unless you really know what you're doing)
+  access-token: ''
+  refresh-token: ''
