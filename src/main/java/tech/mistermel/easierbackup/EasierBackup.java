@@ -25,9 +25,12 @@ public class EasierBackup extends JavaPlugin {
 
 	private File serverFolder;
 	private File backupsFolder;
+	
+	private long backupsFolderSize;
 
 	private SimpleDateFormat dateFormat;
-	private int compressionLevel, maxBackupSize;
+	private int compressionLevel;
+	private long maxBackupSize;
 
 	private List<File> exemptFiles = new ArrayList<>();
 
@@ -60,11 +63,13 @@ public class EasierBackup extends JavaPlugin {
 			this.getLogger().warning("Compression level cannot be set higher than 9. Defaulting to 9.");
 		}
 		
-		this.maxBackupSize = this.getConfig().getInt("max-backup-folder-size");
-		if(maxBackupSize > 0) {
-			maxBackupSize *= 1000000000;
-		} else {
+		double configMaxBackupSize = this.getConfig().getDouble("max-backup-folder-size");
+		if(configMaxBackupSize == -1) {
 			this.getLogger().warning("Max backup folder size is disabled. You will need to manually delete old backups.");
+			this.maxBackupSize = -1;
+		} else {
+			this.maxBackupSize = (long) (configMaxBackupSize * 1073741824);
+			this.getLogger().info("Max backup folder size is set to " + readableFileSize(maxBackupSize));
 		}
 
 		this.getCommand("easierbackup").setExecutor(new CommandHandler());
@@ -112,6 +117,11 @@ public class EasierBackup extends JavaPlugin {
 			
 			this.getLogger().info("ZIP file created (" + readableFileSize(zipFile.length()) + ")");
 			
+			int removedFiles = this.removeOldBackups();
+			if(removedFiles > 0) {
+				this.getLogger().info("Removed " + removedFiles + " old backup" + (removedFiles == 1 ? "" : "s") + ". Backup folder size is now " + readableFileSize(backupsFolderSize));
+			}
+			
 			for(World world : autosaveWorlds) {
 				world.setAutoSave(true);
 			}
@@ -119,6 +129,60 @@ public class EasierBackup extends JavaPlugin {
 			
 			this.isRunning = false;
 		});
+	}
+	
+	private int removeOldBackups() {
+		if(maxBackupSize == -1) {
+			return 0;
+		}
+		
+		int removedFiles = 0;
+		long backupSize = getFolderSize(backupsFolder);
+		while(backupSize > maxBackupSize) {
+			File oldestFile = this.getOldestFile(backupsFolder);
+			long fileSize = oldestFile.length();
+			
+			if(oldestFile.delete()) {
+				backupSize -= fileSize;
+				removedFiles++;
+			} else {
+				this.getLogger().warning("Failed to remove file " + oldestFile.getName());
+			}
+		}
+		
+		this.backupsFolderSize = backupSize;
+		return removedFiles;
+	}
+	
+	private File getOldestFile(File folder) {
+		if(!folder.isDirectory())
+			throw new IllegalArgumentException("Not a directory");
+		
+		File oldestFile = null;
+		for(File file : folder.listFiles()) {
+			if(oldestFile == null || file.lastModified() < oldestFile.lastModified()) {
+				oldestFile = file;
+			}
+		}
+		
+		return oldestFile;
+	}
+	
+	private long getFolderSize(File folder) {
+		if(!folder.isDirectory())
+			return folder.length();
+		
+		long size = 0;
+		
+		for(File file : folder.listFiles()) {
+			if(file.isDirectory()) {
+				size += this.getFolderSize(file);
+				continue;
+			}
+			size += file.length();
+		}
+		
+		return size;
 	}
 
 	private void zipFolder(File srcFolder, File destFile) throws IOException {
