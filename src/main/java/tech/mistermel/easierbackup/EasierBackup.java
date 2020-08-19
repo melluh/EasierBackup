@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -33,8 +32,6 @@ public class EasierBackup extends JavaPlugin {
 	private SimpleDateFormat dateFormat;
 	private int compressionLevel;
 	private long backupsFolderSize, maxBackupSize;
-
-	private List<File> exemptFiles = new ArrayList<>();
 
 	private boolean isRunning;
 	private long completeSize, processedSize;
@@ -76,12 +73,6 @@ public class EasierBackup extends JavaPlugin {
 	
 	private void setupConfigVariables() {
 		this.dateFormat = new SimpleDateFormat(this.getConfig().getString("date-format"));
-		
-		for(String fileName : this.getConfig().getStringList("exempt")) {
-			File file = new File(serverFolder, fileName);
-			this.getLogger().info("File exempt: " + file.getPath());
-			exemptFiles.add(file);
-		}
 
 		this.compressionLevel = this.getConfig().getInt("compression-level");
 		if (compressionLevel > 9) {
@@ -252,7 +243,7 @@ public class EasierBackup extends JavaPlugin {
 		
 		long size = 0;
 		for(File file : folder.listFiles()) {
-			if(exemptFiles.contains(file) || file.getName().equals("session.lock")) {
+			if(file.getName().equals("session.lock") || this.isExempt(file)) {
 				continue;
 			}
 			
@@ -305,7 +296,7 @@ public class EasierBackup extends JavaPlugin {
 	}
 
 	private void addFolderToZip(File folder, String path, ZipOutputStream zipOut) {
-		if(exemptFiles.contains(folder)) {
+		if(this.isExempt(folder)) {
 			return;
 		}
 
@@ -326,7 +317,7 @@ public class EasierBackup extends JavaPlugin {
 	}
 
 	private void addFileToZip(File file, String path, ZipOutputStream zipOut) {
-		if(file.getName().equals("session.lock") || exemptFiles.contains(file) || !isRunning) {
+		if(file.getName().equals("session.lock") || this.isExempt(file) || !isRunning) {
 			return;
 		}
 
@@ -338,13 +329,11 @@ public class EasierBackup extends JavaPlugin {
 			int length;
 			while ((length = fileIn.read(bytes)) >= 0) {
 				zipOut.write(bytes, 0, length);
+				processedSize += length;
 			}
 
 			zipOut.closeEntry();
 			fileIn.close();
-			
-			processedSize += file.length();
-			this.getLogger().info("Added file " + file.getName());
 		} catch (IOException e) {
 			this.getLogger().log(Level.SEVERE, "Error occurred while attempting to add file to zip (" + file.getName() + ")", e);
 		}
@@ -357,6 +346,15 @@ public class EasierBackup extends JavaPlugin {
 	    final String[] units = new String[] { "B", "kB", "MB", "GB", "TB" };
 	    int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
 	    return new DecimalFormat("#.##").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+	}
+	
+	private boolean isExempt(File file) {
+		String path = file.getPath();
+		if(path.startsWith(".\\")) {
+			path = path.substring(2);
+		}
+		
+		return this.getConfig().getStringList("exempt").contains(path);
 	}
 	
 	public boolean isRunning() {
