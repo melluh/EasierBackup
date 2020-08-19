@@ -44,23 +44,25 @@ public class ScheduleHandler {
 			entries.add(entry);
 		}
 		
-		int tickInterval = configSection.getInt("check-interval") * 20;
-		this.checkingTask = new BukkitRunnable() {
-			public void run() {
-				LocalDateTime dateTime = LocalDateTime.now();
-				DayOfWeek today = dateTime.getDayOfWeek();
-				int hours = dateTime.getHour();
-				int minutes = dateTime.getMinute();
-				
-				for(ScheduleEntry entry : entries) {
-					if(entry.getDays().contains(today) && hours == entry.getHours() && minutes == entry.getMinutes()) {
-						if(entry.getTimeSinceLastTrigger() > 60000) {
-							entry.trigger();
+		if(entries.size() > 0) {
+			int tickInterval = configSection.getInt("check-interval") * 20;
+			this.checkingTask = new BukkitRunnable() {
+				public void run() {
+					LocalDateTime dateTime = LocalDateTime.now();
+					DayOfWeek today = dateTime.getDayOfWeek();
+					int hours = dateTime.getHour();
+					int minutes = dateTime.getMinute();
+					
+					for(ScheduleEntry entry : entries) {
+						if(entry.getDays().contains(today) && hours == entry.getHours() && minutes == entry.getMinutes()) {
+							if(entry.getTimeSinceLastTrigger() > 60000) {
+								entry.trigger();
+							}
 						}
 					}
 				}
-			}
-		}.runTaskTimer(EasierBackup.instance(), tickInterval, tickInterval);
+			}.runTaskTimer(EasierBackup.instance(), tickInterval, tickInterval);
+		}
 	}
 	
 	private ScheduleEntry parse(String str) {
