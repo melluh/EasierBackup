@@ -7,6 +7,11 @@ import tech.mistermel.easierbackup.EasierBackup;
 
 public class AbortSubCommand extends SubCommand {
 
+	public AbortSubCommand() {
+		this.setUsage("/backup abort");
+		this.setDescription("Stops creating the backup");
+	}
+	
 	@Override
 	public void onCommand(CommandSender sender, String[] args) {
 		if(!EasierBackup.instance().isRunning()) {

@@ -11,7 +11,6 @@ public class CommandHandler extends CommandBranch implements CommandExecutor  {
 		
 		this.addSubCommand("start", new StartSubCommand());
 		this.addSubCommand("reload", new ReloadSubCommand());
-		this.addSubCommand("finish", new FinishSubCommand());
 		this.addSubCommand("abort", new AbortSubCommand());
 	}
 	
