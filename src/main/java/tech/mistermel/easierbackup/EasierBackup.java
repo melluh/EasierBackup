@@ -18,6 +18,8 @@ import java.util.zip.ZipOutputStream;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import tech.mistermel.easierbackup.cmd.CommandHandler;
 
@@ -35,6 +37,7 @@ public class EasierBackup extends JavaPlugin {
 	private List<File> exemptFiles = new ArrayList<>();
 
 	private boolean isRunning;
+	private long completeSize, processedSize;
 
 	@Override
 	public void onEnable() {
@@ -215,6 +218,27 @@ public class EasierBackup extends JavaPlugin {
 		return oldestFile;
 	}
 	
+	private long getFolderSizeWithExempt(File folder) {
+		if(!folder.isDirectory())
+			return 0;
+		
+		long size = 0;
+		for(File file : folder.listFiles()) {
+			if(exemptFiles.contains(file) || file.getName().equals("session.lock")) {
+				continue;
+			}
+			
+			if(file.isDirectory()) {
+				size += this.getFolderSizeWithExempt(file);
+				continue;
+			}
+			
+			size += file.length();
+		}
+		
+		return size;
+	}
+	
 	private long getFolderSize(File folder) {
 		if(!folder.isDirectory())
 			return folder.length();
@@ -233,13 +257,22 @@ public class EasierBackup extends JavaPlugin {
 	}
 
 	private void zipFolder(File srcFolder, File destFile) throws IOException {
+		BukkitTask task = new BukkitRunnable() {
+			public void run() {
+				int percentage = (int) (processedSize / completeSize * 100);
+				getLogger().info("Backup is " + percentage + "% completed");
+			}
+		}.runTaskTimer(this, 20, 20);
+		
 		ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(destFile));
 		zipOut.setLevel(compressionLevel);
 
+		this.completeSize = this.getFolderSizeWithExempt(serverFolder);
 		this.addFolderToZip(srcFolder, "", zipOut);
 
 		zipOut.flush();
 		zipOut.close();
+		task.cancel();
 	}
 
 	private void addFolderToZip(File folder, String path, ZipOutputStream zipOut) {
@@ -276,6 +309,8 @@ public class EasierBackup extends JavaPlugin {
 
 			zipOut.closeEntry();
 			fileIn.close();
+			
+			processedSize += file.length();
 		} catch (IOException e) {
 			this.getLogger().log(Level.SEVERE, "Error occurred while attempting to add file to zip (" + file.getName() + ")", e);
 		}
