@@ -26,3 +26,14 @@ exempt:
   - 'logs'
   - 'cache'
   - 'server.jar'
+
+# List of terminal commands that get executed after backup completion.
+# (For example, this could be used to run rsync)
+# This does not execute the commands from the Minecraft server console!
+# For that you should use the console-commands section below
+terminal-commands: []
+
+# List of commands that get executed after backup completion.
+# (For example, this could be used to send a mesage in-game)
+# Console commands get executed before executing terminal commands
+console-commands: []

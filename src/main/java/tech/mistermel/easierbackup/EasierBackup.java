@@ -41,16 +41,30 @@ public class EasierBackup extends JavaPlugin {
 		instance = this;
 
 		File configFile = new File(this.getDataFolder(), "config.yml");
-		if (!configFile.exists()) {
+		if(!configFile.exists()) {
 			this.saveDefaultConfig();
 		}
+		this.setupConfigVariables();
 
 		this.serverFolder = this.getServer().getWorldContainer();
 		this.backupsFolder = new File(serverFolder, "backups");
-		if (!backupsFolder.isDirectory()) {
+		if(!backupsFolder.isDirectory()) {
 			backupsFolder.mkdir();
 		}
-
+		
+		this.getCommand("easierbackup").setExecutor(new CommandHandler());
+	}
+	
+	public void doConfigReload() {
+		if(isRunning) {
+			throw new IllegalStateException("Cannot reload while running");
+		}
+		
+		this.reloadConfig();
+		this.setupConfigVariables();
+	}
+	
+	private void setupConfigVariables() {
 		this.dateFormat = new SimpleDateFormat(this.getConfig().getString("date-format"));
 		for (String fileName : this.getConfig().getStringList("exempt")) {
 			File file = new File(serverFolder, fileName);
@@ -61,6 +75,8 @@ public class EasierBackup extends JavaPlugin {
 		if (compressionLevel > 9) {
 			compressionLevel = 9;
 			this.getLogger().warning("Compression level cannot be set higher than 9. Defaulting to 9.");
+		} else {
+			this.getLogger().info("Compression level is set to " + compressionLevel);
 		}
 		
 		double configMaxBackupSize = this.getConfig().getDouble("max-backup-folder-size");
@@ -71,8 +87,6 @@ public class EasierBackup extends JavaPlugin {
 			this.maxBackupSize = (long) (configMaxBackupSize * 1073741824);
 			this.getLogger().info("Max backup folder size is set to " + readableFileSize(maxBackupSize));
 		}
-
-		this.getCommand("easierbackup").setExecutor(new CommandHandler());
 	}
 
 	public void doBackup() {
@@ -127,8 +141,41 @@ public class EasierBackup extends JavaPlugin {
 			}
 			this.getLogger().info("Re-enabled autosave for " + autosaveWorlds.size() + (autosaveWorlds.size() == 1 ? " world" : " worlds"));
 			
+			this.executeConsoleCommands();
+			this.executeTerminalCommands();
+			
 			this.isRunning = false;
 		});
+	}
+	
+	private void executeTerminalCommands() {
+		List<String> commands = this.getConfig().getStringList("terminal-commands");
+		if(commands.size() == 0) {
+			return;
+		}
+		
+		for(String consoleCmd : commands) {
+			try {
+				Runtime.getRuntime().exec(consoleCmd);
+			} catch (IOException e) {
+				this.getLogger().log(Level.SEVERE, "Error occurred while attempting to execute terminal command", e);
+			}
+		}
+		
+		this.getLogger().info("Executed " + commands.size() + "terminal command" + (commands.size() == 1 ? "" : "s"));
+	}
+	
+	private void executeConsoleCommands() {
+		List<String> commands = this.getConfig().getStringList("console-commands");
+		if(commands.size() == 0) {
+			return;
+		}
+		
+		for(String consoleCmd : commands) {
+			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), consoleCmd);
+		}
+		
+		this.getLogger().info("Executed " + commands.size() + "console command" + (commands.size() == 1 ? "" : "s"));
 	}
 	
 	private int removeOldBackups() {

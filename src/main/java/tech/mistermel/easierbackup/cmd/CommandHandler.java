@@ -10,6 +10,7 @@ public class CommandHandler extends CommandBranch implements CommandExecutor  {
 		this.setUsage("/backup");
 		
 		this.addSubCommand("create", new CreateSubCommand());
+		this.addSubCommand("reload", new ReloadSubCommand());
 	}
 	
 	@Override
