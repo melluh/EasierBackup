@@ -356,7 +356,7 @@ public class EasierBackup extends JavaPlugin {
 	
 	private boolean isExempt(File file) {
 		String path = file.getPath();
-		if(path.startsWith(".\\")) {
+		if(path.startsWith(".\\") || path.startsWith("./")) {
 			path = path.substring(2);
 		}
 		
