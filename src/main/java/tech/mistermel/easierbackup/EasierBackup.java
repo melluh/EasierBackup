@@ -58,6 +58,13 @@ public class EasierBackup extends JavaPlugin {
 		this.getCommand("easierbackup").setExecutor(new CommandHandler());
 	}
 	
+	@Override
+	public void onDisable() {
+		if(this.isRunning()) {
+			this.abortBackup();
+		}
+	}
+	
 	public void doConfigReload() {
 		if(isRunning) {
 			throw new IllegalStateException("Cannot reload while running");
@@ -69,8 +76,10 @@ public class EasierBackup extends JavaPlugin {
 	
 	private void setupConfigVariables() {
 		this.dateFormat = new SimpleDateFormat(this.getConfig().getString("date-format"));
-		for (String fileName : this.getConfig().getStringList("exempt")) {
+		
+		for(String fileName : this.getConfig().getStringList("exempt")) {
 			File file = new File(serverFolder, fileName);
+			this.getLogger().info("File exempt: " + file.getPath());
 			exemptFiles.add(file);
 		}
 
@@ -90,6 +99,14 @@ public class EasierBackup extends JavaPlugin {
 			this.maxBackupSize = (long) (configMaxBackupSize * 1073741824);
 			this.getLogger().info("Max backup folder size is set to " + readableFileSize(maxBackupSize));
 		}
+	}
+	
+	public void abortBackup() {
+		if(!isRunning)
+			throw new IllegalStateException("Backup is not running");
+		
+		this.isRunning = false;
+		this.getLogger().info("Aborting backup...");
 	}
 
 	public void doBackup() {
@@ -132,6 +149,13 @@ public class EasierBackup extends JavaPlugin {
 				return;
 			}
 			
+			// Checks if the backup was aborted
+			if(!isRunning) {
+				zipFile.delete();
+				this.getLogger().info("Backup aborted, file deleted");
+				return;
+			}
+			
 			this.getLogger().info("ZIP file created (" + readableFileSize(zipFile.length()) + ")");
 			
 			int removedFiles = this.removeOldBackups();
@@ -155,7 +179,7 @@ public class EasierBackup extends JavaPlugin {
 		});
 	}
 	
-	private void executeTerminalCommands() {
+	public void executeTerminalCommands() {
 		List<String> commands = this.getConfig().getStringList("terminal-commands");
 		if(commands.size() == 0) {
 			return;
@@ -163,16 +187,16 @@ public class EasierBackup extends JavaPlugin {
 		
 		for(String consoleCmd : commands) {
 			try {
-				Runtime.getRuntime().exec(consoleCmd);
+				new ProcessBuilder("bash", "-c", consoleCmd).inheritIO().start();
 			} catch (IOException e) {
 				this.getLogger().log(Level.SEVERE, "Error occurred while attempting to execute terminal command", e);
 			}
 		}
 		
-		this.getLogger().info("Executed " + commands.size() + "terminal command" + (commands.size() == 1 ? "" : "s"));
+		this.getLogger().info("Executed " + commands.size() + " terminal command" + (commands.size() == 1 ? "" : "s"));
 	}
 	
-	private void executeConsoleCommands() {
+	public void executeConsoleCommands() {
 		List<String> commands = this.getConfig().getStringList("console-commands");
 		if(commands.size() == 0) {
 			return;
@@ -182,7 +206,7 @@ public class EasierBackup extends JavaPlugin {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), consoleCmd);
 		}
 		
-		this.getLogger().info("Executed " + commands.size() + "console command" + (commands.size() == 1 ? "" : "s"));
+		this.getLogger().info("Executed " + commands.size() + " console command" + (commands.size() == 1 ? "" : "s"));
 	}
 	
 	private int removeOldBackups() {
@@ -261,17 +285,18 @@ public class EasierBackup extends JavaPlugin {
 	}
 
 	private void zipFolder(File srcFolder, File destFile) throws IOException {
+		this.completeSize = this.getFolderSizeWithExempt(serverFolder);
+		String completeSizeFormatted = readableFileSize(completeSize);
 		BukkitTask task = new BukkitRunnable() {
 			public void run() {
-				int percentage = (int) (processedSize / completeSize * 100);
-				getLogger().info("Backup is " + percentage + "% completed");
+				int percentage = (int) ((processedSize / completeSize) * 100);
+				getLogger().info(readableFileSize(processedSize) + "/" + completeSizeFormatted + " (" + percentage + "%)");
 			}
-		}.runTaskTimer(this, 20, 20);
+		}.runTaskTimer(this, 200, 200);
 		
 		ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(destFile));
 		zipOut.setLevel(compressionLevel);
 
-		this.completeSize = this.getFolderSizeWithExempt(serverFolder);
 		this.addFolderToZip(srcFolder, "", zipOut);
 
 		zipOut.flush();
@@ -287,7 +312,11 @@ public class EasierBackup extends JavaPlugin {
 		for(File file : folder.listFiles()) {
 			String filePath = (path.isEmpty() ? "" : path + "/") + file.getName();
 
-			if (file.isDirectory()) {
+			if(!isRunning) {
+				break;
+			}
+			
+			if(file.isDirectory()) {
 				this.addFolderToZip(file, filePath, zipOut);
 				continue;
 			}
@@ -297,7 +326,7 @@ public class EasierBackup extends JavaPlugin {
 	}
 
 	private void addFileToZip(File file, String path, ZipOutputStream zipOut) {
-		if(file.getName().equals("session.lock") || exemptFiles.contains(file)) {
+		if(file.getName().equals("session.lock") || exemptFiles.contains(file) || !isRunning) {
 			return;
 		}
 
@@ -315,6 +344,7 @@ public class EasierBackup extends JavaPlugin {
 			fileIn.close();
 			
 			processedSize += file.length();
+			this.getLogger().info("Added file " + file.getName());
 		} catch (IOException e) {
 			this.getLogger().log(Level.SEVERE, "Error occurred while attempting to add file to zip (" + file.getName() + ")", e);
 		}
