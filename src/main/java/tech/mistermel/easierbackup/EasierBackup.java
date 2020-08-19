@@ -144,7 +144,11 @@ public class EasierBackup extends JavaPlugin {
 			}
 			this.getLogger().info("Re-enabled autosave for " + autosaveWorlds.size() + (autosaveWorlds.size() == 1 ? " world" : " worlds"));
 			
-			this.executeConsoleCommands();
+			this.getServer().getScheduler().runTask(this, () -> {
+				// Commands can only be dispatched synchronously
+				this.executeConsoleCommands();
+			});
+			
 			this.executeTerminalCommands();
 			
 			this.isRunning = false;
