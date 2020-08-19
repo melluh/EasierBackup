@@ -113,6 +113,7 @@ public class EasierBackup extends JavaPlugin {
 		
 		this.isRunning = true;
 		this.lastPercentage = 0;
+		this.processedSize = 0;
 		
 		Set<World> autosaveWorlds = new HashSet<>();
 		for(World world : Bukkit.getWorlds()) {
@@ -246,7 +247,7 @@ public class EasierBackup extends JavaPlugin {
 	
 	private long getFolderSizeWithExempt(File folder) {
 		if(!folder.isDirectory())
-			return 0;
+			throw new IllegalStateException("Not a folder");
 		
 		long size = 0;
 		for(File file : folder.listFiles()) {

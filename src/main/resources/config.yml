@@ -26,6 +26,9 @@ exempt:
   - 'logs'
   - 'cache'
   - 'server.jar'
+  
+# Specifies the interval in percent at which a progress update message gets sent.
+percentage-log-interval: 5
 
 # List of terminal commands that get executed after backup completion.
 # (For example, this could be used to run rsync)
