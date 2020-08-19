@@ -26,6 +26,7 @@ exempt:
   - 'logs'
   - 'cache'
   - 'server.jar'
+  - 'plugins/dynmap/web/tiles'
   
 # Specifies the interval in percent at which a progress update message gets sent.
 percentage-log-interval: 5
@@ -51,6 +52,8 @@ schedule:
   # - '17:00' (runs every day at 17:00)
   # - 'Mon 7:30' (runs every Monday at 07:30)
   # - 'Tue Wed Thu 8:00' (runs every Tuesday, Wednesday and Thursday at 8:00)
+  #
+  # You can also leave this list empty which will disable automatic backups.
   times:
     - '17:00'
 
