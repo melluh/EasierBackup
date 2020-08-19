@@ -4,11 +4,11 @@ import org.bukkit.command.CommandSender;
 
 import tech.mistermel.easierbackup.EasierBackup;
 
-public class CreateSubCommand extends SubCommand {
+public class StartSubCommand extends SubCommand {
 
-	public CreateSubCommand() {
-		this.setUsage("/backup create");
-		this.setDescription("Creates a new backup");
+	public StartSubCommand() {
+		this.setUsage("/backup start");
+		this.setDescription("Starts creating a new backup");
 	}
 	
 	@Override
