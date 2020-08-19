@@ -9,7 +9,6 @@ public class CommandHandler extends CommandBranch implements CommandExecutor  {
 	public CommandHandler() {
 		this.setUsage("/backup");
 		
-		this.addSubCommand("dropbox", new DropboxSubCommand());
 		this.addSubCommand("create", new CreateSubCommand());
 	}
 	
