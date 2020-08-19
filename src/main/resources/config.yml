@@ -37,3 +37,20 @@ terminal-commands: []
 # (For example, this could be used to send a mesage in-game)
 # Console commands get executed before executing terminal commands
 console-commands: []
+
+schedule:
+  # You can enter the times at which the backup should run below.
+  # Just enter the time (24-hour clock) to run the backup daily at
+  # that time. You can also enter weekday(s) before it to only run
+  # the backup on that day.
+  #
+  # Examples:
+  # - '17:00' (runs every day at 17:00)
+  # - 'Mon 7:30' (runs every Monday at 07:30)
+  # - 'Tue Wed Thu 8:00' (runs every Tuesday, Wednesday and Thursday at 8:00)
+  times:
+    - '17:00'
+
+  # This controls the amount of time in seconds between the plugin
+  # checking if it is time for a backup.
+  check-interval: 5

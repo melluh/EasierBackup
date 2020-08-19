@@ -19,11 +19,14 @@ import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import tech.mistermel.easierbackup.cmd.CommandHandler;
+import tech.mistermel.easierbackup.schedule.ScheduleHandler;
 
 public class EasierBackup extends JavaPlugin {
 
 	private static EasierBackup instance;
 
+	private ScheduleHandler scheduleHandler;
+	
 	private File serverFolder;
 	private File backupsFolder;
 
@@ -43,6 +46,8 @@ public class EasierBackup extends JavaPlugin {
 		if(!configFile.exists()) {
 			this.saveDefaultConfig();
 		}
+		
+		this.scheduleHandler = new ScheduleHandler();
 		this.setupConfigVariables();
 
 		this.serverFolder = this.getServer().getWorldContainer();
@@ -89,6 +94,8 @@ public class EasierBackup extends JavaPlugin {
 			this.maxBackupSize = (long) (configMaxBackupSize * 1073741824);
 			this.getLogger().info("Max backup folder size is set to " + readableFileSize(maxBackupSize));
 		}
+		
+		scheduleHandler.load(this.getConfig().getConfigurationSection("schedule"));
 	}
 	
 	public void abortBackup() {
