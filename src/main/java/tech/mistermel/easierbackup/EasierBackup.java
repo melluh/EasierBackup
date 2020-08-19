@@ -17,8 +17,6 @@ import java.util.zip.ZipOutputStream;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import tech.mistermel.easierbackup.cmd.CommandHandler;
 
@@ -35,6 +33,7 @@ public class EasierBackup extends JavaPlugin {
 
 	private boolean isRunning;
 	private long completeSize, processedSize;
+	private int lastPercentage;
 
 	@Override
 	public void onEnable() {
@@ -106,6 +105,7 @@ public class EasierBackup extends JavaPlugin {
 		}
 		
 		this.isRunning = true;
+		this.lastPercentage = 0;
 		
 		Set<World> autosaveWorlds = new HashSet<>();
 		for(World world : Bukkit.getWorlds()) {
@@ -147,7 +147,7 @@ public class EasierBackup extends JavaPlugin {
 				return;
 			}
 			
-			this.getLogger().info("ZIP file created (" + readableFileSize(zipFile.length()) + ")");
+			this.getLogger().info("ZIP file created (" + readableFileSize(completeSize) + " -> " + readableFileSize(zipFile.length()) + ")");
 			
 			int removedFiles = this.removeOldBackups();
 			if(removedFiles > 0) {
@@ -277,13 +277,6 @@ public class EasierBackup extends JavaPlugin {
 
 	private void zipFolder(File srcFolder, File destFile) throws IOException {
 		this.completeSize = this.getFolderSizeWithExempt(serverFolder);
-		String completeSizeFormatted = readableFileSize(completeSize);
-		BukkitTask task = new BukkitRunnable() {
-			public void run() {
-				int percentage = (int) ((processedSize / completeSize) * 100);
-				getLogger().info(readableFileSize(processedSize) + "/" + completeSizeFormatted + " (" + percentage + "%)");
-			}
-		}.runTaskTimer(this, 200, 200);
 		
 		ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(destFile));
 		zipOut.setLevel(compressionLevel);
@@ -292,7 +285,6 @@ public class EasierBackup extends JavaPlugin {
 
 		zipOut.flush();
 		zipOut.close();
-		task.cancel();
 	}
 
 	private void addFolderToZip(File folder, String path, ZipOutputStream zipOut) {
@@ -329,7 +321,13 @@ public class EasierBackup extends JavaPlugin {
 			int length;
 			while ((length = fileIn.read(bytes)) >= 0) {
 				zipOut.write(bytes, 0, length);
+				
 				processedSize += length;
+				int percentage = (int) (0.5d + ((double) processedSize / (double) completeSize) * 100);
+				if(percentage != lastPercentage && percentage % this.getConfig().getInt("percentage-log-interval") == 0) {
+					lastPercentage = percentage;
+					this.getLogger().info(readableFileSize(processedSize) + "/" + readableFileSize(completeSize) + " (" + percentage + "%)");
+				}
 			}
 
 			zipOut.closeEntry();
