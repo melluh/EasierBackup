@@ -1,12 +1,15 @@
 package tech.mistermel.easierbackup.uploader;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.libs.org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -22,19 +25,47 @@ import tech.mistermel.easierbackup.EasierBackup;
 public class DropboxUploader implements Uploader {
 	
 	private static final String CLIENT_ID = "zfcg6xjcts31s75";
-	private static final String USER_URL = "https://www.dropbox.com/oauth2/authorize?client_id=%%CLIENTID%%&response_type=code&code_challenge=%%CHALLENGE%%&code_challenge_method=S256";
+	private static final String USER_URL = "https://www.dropbox.com/oauth2/authorize?client_id=%%CLIENTID%%&response_type=code&code_challenge=%%CHALLENGE%%&code_challenge_method=S256&token_access_type=offline";
 	private static final String TOKEN_URL = "https://api.dropboxapi.com/oauth2/token";
 	
 	private final OkHttpClient httpClient = new OkHttpClient();	
 	private String codeVerifier, codeChallenge;
 	
 	private String accessToken, refreshToken;
+	private long expiryTime;
 	
-	public DropboxUploader(ConfigurationSection section) {
-		this.accessToken = section.getString("accessToken");
+	private File dataFile;
+	private FileConfiguration data;
+	
+	public DropboxUploader() {
+		this.dataFile = new File(EasierBackup.instance().getDataFolder(), "dropbox.yml");
+		if(!dataFile.exists()) {
+			try {
+				dataFile.createNewFile();
+			} catch (IOException e) {
+				EasierBackup.instance().getLogger().log(Level.SEVERE, "Error occurred while attempting to create dropbox.yml file", e);
+			}
+		}
+		this.data = YamlConfiguration.loadConfiguration(dataFile);
 	}
 	
-	public AuthenticationResult getBearerToken(String authorizationCode) {
+	private void saveAuthenticationData() {
+		data.set("accessToken", accessToken);
+		data.set("refreshToken", refreshToken);
+		data.set("expiryTime", expiryTime);
+		
+		this.saveDataFile();
+	}
+	
+	private void saveDataFile() {
+		try {
+			data.save(dataFile);
+		} catch (IOException e) {
+			EasierBackup.instance().getLogger().log(Level.SEVERE, "Error occurred while attempting to save dropbox.yml file", e);
+		}
+	}
+	
+	public boolean authenticate(String authorizationCode) {
 		if(Bukkit.isPrimaryThread()) {
 			EasierBackup.instance().getLogger().warning("getBearerToken() is being run on the primary thread!");
 		}
@@ -55,21 +86,22 @@ public class DropboxUploader implements Uploader {
 			Response response = httpClient.newCall(request).execute();
 			
 			if(!response.isSuccessful()) {
-				return new AuthenticationResult(false, null, null, 0);
+				return false;
 			}
 			
 			JSONObject json = (JSONObject) new JSONParser().parse(response.body().string());
 			response.close();
 			
-			String accessToken = (String) json.get("access_token");
-			String refreshToken = (String) json.get("refresh_token");
-			long expiresIn = (long) json.get("expires_in");
+			this.accessToken = (String) json.get("access_token");
+			this.refreshToken = (String) json.get("refresh_token");
+			this.expiryTime = System.currentTimeMillis() + ((long) json.get("expires_in") * 1000);
 			
-			AuthenticationResult result = new AuthenticationResult(true, accessToken, refreshToken, System.currentTimeMillis() + expiresIn);
-			return result;
+			this.saveAuthenticationData();
+			
+			return true;
 		} catch (IOException | ParseException e) {
 			e.printStackTrace();
-			return null;
+			return false;
 		}
 	}
 	
@@ -99,38 +131,6 @@ public class DropboxUploader implements Uploader {
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public class AuthenticationResult {
-		
-		private boolean success;
-		
-		private String bearerToken, refreshToken;
-		private long expiryTime;
-		
-		public AuthenticationResult(boolean success, String bearerToken, String refreshToken, long expiryTime) {
-			this.success = success;
-			this.bearerToken = bearerToken;
-			this.refreshToken = refreshToken;
-			this.expiryTime = expiryTime;
-		}
-		
-		public boolean isSuccess() {
-			return success;
-		}
-		
-		public String getBearerToken() {
-			return bearerToken;
-		}
-		
-		public String getRefreshToken() {
-			return refreshToken;
-		}
-		
-		public long getExpiryTime() {
-			return expiryTime;
-		}
-		
 	}
 	
 }

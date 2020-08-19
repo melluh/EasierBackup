@@ -28,12 +28,10 @@ public class EasierBackup extends JavaPlugin {
 
 	private File serverFolder;
 	private File backupsFolder;
-	
-	private long backupsFolderSize;
 
 	private SimpleDateFormat dateFormat;
 	private int compressionLevel;
-	private long maxBackupSize;
+	private long backupsFolderSize, maxBackupSize;
 
 	private List<File> exemptFiles = new ArrayList<>();
 
@@ -77,7 +75,7 @@ public class EasierBackup extends JavaPlugin {
 			this.getLogger().info("Max backup folder size is set to " + readableFileSize(maxBackupSize));
 		}
 		
-		this.dropboxUploader = new DropboxUploader(this.getConfig().getConfigurationSection("dropbox"));
+		this.dropboxUploader = new DropboxUploader();
 
 		this.getCommand("easierbackup").setExecutor(new CommandHandler());
 	}
@@ -101,7 +99,7 @@ public class EasierBackup extends JavaPlugin {
 			world.setAutoSave(false);
 		}
 		this.getLogger().info("Creating ZIP file, please wait...");
-
+		
 		String fileName = this.getConfig().getString("file-name").replace("%%date%%", dateFormat.format(new Date()));
 		File zipFile = new File(backupsFolder, fileName);
 

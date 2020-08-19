@@ -4,7 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import tech.mistermel.easierbackup.EasierBackup;
-import tech.mistermel.easierbackup.uploader.DropboxUploader.AuthenticationResult;
 
 public class DropboxSubCommand extends CommandBranch {
 
@@ -44,7 +43,7 @@ public class DropboxSubCommand extends CommandBranch {
 			String url = EasierBackup.instance().getDropboxUploader().generateUserURL();
 			sender.sendMessage(ChatColor.AQUA + "Open the following URL in your browser to connect your Dropbox account:");
 			sender.sendMessage(url);
-			sender.sendMessage(ChatColor.AQUA + "After you have received your authorization code, use " + ChatColor.WHITE + " /backup dropbox code <Authorization Code>");
+			sender.sendMessage(ChatColor.AQUA + "After you have received your authorization code, use " + ChatColor.WHITE + "/backup dropbox code <Authorization Code>");
 		}
 		
 	}
@@ -63,13 +62,8 @@ public class DropboxSubCommand extends CommandBranch {
 				return;
 			}
 			
-			AuthenticationResult result = EasierBackup.instance().getDropboxUploader().getBearerToken(args[0]);
-			if(result == null) {
-				sender.sendMessage(ChatColor.RED + "Something went wrong while attempting to process your request. Please try again later.");
-				return;
-			}
-			
-			if(!result.isSuccess()) {
+			boolean success = EasierBackup.instance().getDropboxUploader().authenticate(args[0]);
+			if(!success) {
 				sender.sendMessage(ChatColor.RED + "That authorization code is invalid.");
 				return;
 			}
