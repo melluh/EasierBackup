@@ -6,3 +6,4 @@ commands:
   easierbackup:
     description: Main command
     aliases: ['backup']
+    permission: 'easierbackup.admin'
