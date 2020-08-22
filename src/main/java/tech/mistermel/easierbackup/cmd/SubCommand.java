@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender;
 
 public abstract class SubCommand {
 
-	private String usage, description;
+	private String usage, description, requiredPermission;
 	
 	public abstract void onCommand(CommandSender sender, String[] args);
 	
@@ -28,12 +28,20 @@ public abstract class SubCommand {
 		this.description = description;
 	}
 	
+	protected void setRequiredPermission(String requiredPermission) {
+		this.requiredPermission = requiredPermission;
+	}
+	
 	public String getUsage() {
 		return usage;
 	}
 	
 	public String getDescription() {
 		return description;
+	}
+	
+	public String getRequiredPermission() {
+		return requiredPermission;
 	}
 	
 }

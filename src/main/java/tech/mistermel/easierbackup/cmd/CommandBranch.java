@@ -32,16 +32,21 @@ public abstract class CommandBranch extends SubCommand {
 			return;
 		}
 		
+		if(subCmd.getRequiredPermission() != null && !sender.hasPermission(subCmd.getRequiredPermission())) {
+			sender.sendMessage(ChatColor.RED + "You do not have the required permission to use this command.");
+			return;
+		}
+		
 		subCmd.onCommand(sender, Arrays.copyOfRange(args, 1, args.length));
 	}
 	
 	@Override
 	public List<String> onTabComplete(CommandSender sender, String[] args) {
-		if(args.length == 0) {
+		if(args.length == 1) {
 			return new ArrayList<String>(subCommands.keySet());
 		}
 		
-		SubCommand subCmd = subCommands.get(args[0]);
+		SubCommand subCmd = subCommands.get(args[0].toLowerCase());
 		if(subCmd == null) {
 			return Collections.emptyList();
 		}

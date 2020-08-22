@@ -10,6 +10,7 @@ public class AbortSubCommand extends SubCommand {
 	public AbortSubCommand() {
 		this.setUsage("/backup abort");
 		this.setDescription("Stops creating the backup");
+		this.setRequiredPermission("easierbackup.controlbackup");
 	}
 	
 	@Override
