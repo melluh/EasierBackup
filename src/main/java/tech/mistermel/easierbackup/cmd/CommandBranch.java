@@ -32,6 +32,11 @@ public abstract class CommandBranch extends SubCommand {
 			return;
 		}
 		
+		if(subCmd.getRequiredPermission() != null && !sender.hasPermission(subCmd.getRequiredPermission())) {
+			sender.sendMessage(ChatColor.RED + "You do not have the required permission to use this command.");
+			return;
+		}
+		
 		subCmd.onCommand(sender, Arrays.copyOfRange(args, 1, args.length));
 	}
 	

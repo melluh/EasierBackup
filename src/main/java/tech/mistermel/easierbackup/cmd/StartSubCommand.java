@@ -9,6 +9,7 @@ public class StartSubCommand extends SubCommand {
 	public StartSubCommand() {
 		this.setUsage("/backup start");
 		this.setDescription("Starts creating a new backup");
+		this.setRequiredPermission("easierbackup.command.start");
 	}
 	
 	@Override

@@ -10,6 +10,7 @@ public class ReloadSubCommand extends SubCommand {
 	public ReloadSubCommand() {
 		this.setUsage("/backup reload");
 		this.setDescription("Reloads the EasierBackup config");
+		this.setRequiredPermission("easierbackup.command.reload");
 	}
 	
 	@Override
