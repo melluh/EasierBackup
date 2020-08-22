@@ -46,7 +46,7 @@ public abstract class CommandBranch extends SubCommand {
 			return new ArrayList<String>(subCommands.keySet());
 		}
 		
-		SubCommand subCmd = subCommands.get(args[0]);
+		SubCommand subCmd = subCommands.get(args[0].toLowerCase());
 		if(subCmd == null) {
 			return Collections.emptyList();
 		}

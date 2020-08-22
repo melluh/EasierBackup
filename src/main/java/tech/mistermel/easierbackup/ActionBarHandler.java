@@ -14,6 +14,7 @@ public class ActionBarHandler {
 	private BaseComponent[] message;
 	
 	public void start() {
+		this.lastPercentage = -1;
 		this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(EasierBackup.instance(), () -> sendActionBar(), 1, 1);
 	}
 	
