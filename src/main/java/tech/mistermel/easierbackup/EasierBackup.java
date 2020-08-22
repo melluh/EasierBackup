@@ -26,6 +26,7 @@ public class EasierBackup extends JavaPlugin {
 	private static EasierBackup instance;
 
 	private ScheduleHandler scheduleHandler;
+	private ActionBarHandler actionBarHandler;
 	
 	private File serverFolder;
 	private File backupsFolder;
@@ -48,6 +49,8 @@ public class EasierBackup extends JavaPlugin {
 		}
 		
 		this.scheduleHandler = new ScheduleHandler();
+		this.actionBarHandler = new ActionBarHandler();
+		
 		this.setupConfigVariables();
 
 		this.serverFolder = this.getServer().getWorldContainer();
@@ -115,6 +118,8 @@ public class EasierBackup extends JavaPlugin {
 		this.lastPercentage = 0;
 		this.processedSize = 0;
 		
+		actionBarHandler.start();
+		
 		Set<World> autosaveWorlds = new HashSet<>();
 		for(World world : Bukkit.getWorlds()) {
 			this.getLogger().info("Saving " + world.getName() + "...");
@@ -139,7 +144,7 @@ public class EasierBackup extends JavaPlugin {
 			return;
 		}
 
-		this.getServer().getScheduler().runTaskAsynchronously(this, () -> {
+		this.getServer().getScheduler().runTaskAsynchronously(this, () -> {			
 			try {
 				this.zipFolder(serverFolder, zipFile);
 			} catch (IOException e) {
@@ -150,6 +155,7 @@ public class EasierBackup extends JavaPlugin {
 			
 			// Checks if the backup was aborted
 			if(!isRunning) {
+				actionBarHandler.stop();
 				zipFile.delete();
 				this.getLogger().info("Backup aborted, file deleted");
 				return;
@@ -174,6 +180,7 @@ public class EasierBackup extends JavaPlugin {
 			
 			this.executeTerminalCommands();
 			
+			actionBarHandler.stop();
 			this.isRunning = false;
 		});
 	}
@@ -331,7 +338,9 @@ public class EasierBackup extends JavaPlugin {
 				zipOut.write(bytes, 0, length);
 				
 				processedSize += length;
+				
 				int percentage = (int) (0.5d + ((double) processedSize / (double) completeSize) * 100);
+				actionBarHandler.setProgress(percentage);
 				if(percentage != lastPercentage && percentage % this.getConfig().getInt("percentage-log-interval") == 0) {
 					lastPercentage = percentage;
 					this.getLogger().info(readableFileSize(processedSize) + "/" + readableFileSize(completeSize) + " (" + percentage + "%)");
