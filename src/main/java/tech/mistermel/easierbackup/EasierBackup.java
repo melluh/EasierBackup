@@ -158,6 +158,7 @@ public class EasierBackup extends JavaPlugin {
 				actionBarHandler.stop();
 				zipFile.delete();
 				this.getLogger().info("Backup aborted, file deleted");
+				this.enableAutosave(autosaveWorlds);
 				return;
 			}
 			
@@ -168,10 +169,7 @@ public class EasierBackup extends JavaPlugin {
 				this.getLogger().info("Removed " + removedFiles + " old backup" + (removedFiles == 1 ? "" : "s") + ". Backup folder size is now " + readableFileSize(backupsFolderSize));
 			}
 			
-			for(World world : autosaveWorlds) {
-				world.setAutoSave(true);
-			}
-			this.getLogger().info("Re-enabled autosave for " + autosaveWorlds.size() + (autosaveWorlds.size() == 1 ? " world" : " worlds"));
+			this.enableAutosave(autosaveWorlds);
 			
 			this.getServer().getScheduler().runTask(this, () -> {
 				// Commands can only be dispatched synchronously
@@ -183,6 +181,13 @@ public class EasierBackup extends JavaPlugin {
 			actionBarHandler.stop();
 			this.isRunning = false;
 		});
+	}
+	
+	private void enableAutosave(Set<World> autosaveWorlds) {
+		for(World world : autosaveWorlds) {
+			world.setAutoSave(true);
+		}
+		this.getLogger().info("Re-enabled autosave for " + autosaveWorlds.size() + (autosaveWorlds.size() == 1 ? " world" : " worlds"));
 	}
 	
 	public void executeTerminalCommands() {
