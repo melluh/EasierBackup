@@ -31,13 +31,14 @@ public class ActionBarHandler {
 		this.lastPercentage = progressPercentage;
 		
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < 10; i++) {
-			int percentageTreshold = (i + 1) * 10;
-			ChatColor color = progressPercentage >= percentageTreshold ? ChatColor.GREEN : ChatColor.GRAY;
+		for(int i = 1; i <= 100; i++) {
+			ChatColor color = progressPercentage >= i ? ChatColor.GREEN : ChatColor.GRAY;
 			builder.append(color + "|");
 		}
 		
-		builder.append(" " + ChatColor.AQUA + progressPercentage + "%");
+		String formattedPercentage = String.format("% 3d", progressPercentage);
+		
+		builder.append(" " + ChatColor.AQUA + formattedPercentage + "%");
 		this.setMessage(builder.toString());
 	}
 	
