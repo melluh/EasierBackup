@@ -2,6 +2,7 @@ package tech.mistermel.easierbackup;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -23,7 +24,10 @@ public class AnnouncementHandler {
 			return;
 		}
 		
-		Bukkit.getServer().broadcastMessage(ChatColor.translateAlternateColorCodes('&', section.getString("message")));
+		String msg = ChatColor.translateAlternateColorCodes('&', section.getString("message"));
+		for(Player player : Bukkit.getOnlinePlayers()) {
+			player.sendMessage(msg);
+		}
 	}
 	
 }
