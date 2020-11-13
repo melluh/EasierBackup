@@ -27,7 +27,7 @@ exempt:
   - 'cache'
   - 'server.jar'
   - 'plugins/dynmap/web/tiles'
-  
+
 # Specifies the interval in percent at which a progress update message gets sent.
 percentage-log-interval: 5
 
@@ -60,3 +60,17 @@ schedule:
   # This controls the amount of time in seconds between the plugin
   # checking if it is time for a backup.
   check-interval: 5
+
+# These announcements get sent to everyone on the server.
+# You can enable/disable each indivual annoucement type
+# by setting 'enabled' to true/false, and edit the message.
+announcements:
+  backup-starting:
+    enabled: false
+    message: '&aA backup is starting. This may cause some temporary lag.'
+  backup-finished:
+    enabled: false
+    message: '&aThe backup has finished.'
+  backup-aborted:
+    enabled: false
+    message: '&cThe backup was aborted.'

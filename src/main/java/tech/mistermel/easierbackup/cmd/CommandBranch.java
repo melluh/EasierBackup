@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.util.StringUtil;
 
 public abstract class CommandBranch extends SubCommand {
 
@@ -43,7 +44,11 @@ public abstract class CommandBranch extends SubCommand {
 	@Override
 	public List<String> onTabComplete(CommandSender sender, String[] args) {
 		if(args.length == 1) {
-			return new ArrayList<String>(subCommands.keySet());
+			List<String> result = new ArrayList<String>();
+			StringUtil.copyPartialMatches(args[0], subCommands.keySet(), result);
+			Collections.sort(result);
+			
+			return result;
 		}
 		
 		SubCommand subCmd = subCommands.get(args[0].toLowerCase());

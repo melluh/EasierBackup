@@ -18,6 +18,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import tech.mistermel.easierbackup.AnnouncementHandler.AnnouncementType;
 import tech.mistermel.easierbackup.cmd.CommandHandler;
 import tech.mistermel.easierbackup.schedule.ScheduleHandler;
 
@@ -59,7 +60,9 @@ public class EasierBackup extends JavaPlugin {
 			backupsFolder.mkdir();
 		}
 		
-		this.getCommand("easierbackup").setExecutor(new CommandHandler());
+		CommandHandler cmdHandler = new CommandHandler();
+		this.getCommand("easierbackup").setExecutor(cmdHandler);
+		this.getCommand("easierbackup").setTabCompleter(cmdHandler);
 	}
 	
 	@Override
@@ -114,6 +117,8 @@ public class EasierBackup extends JavaPlugin {
 			throw new IllegalStateException("Backup is already running");
 		}
 		
+		AnnouncementHandler.sendAnnouncement(AnnouncementType.BACKUP_STARTING);
+		
 		this.isRunning = true;
 		this.lastPercentage = 0;
 		this.processedSize = 0;
@@ -156,9 +161,12 @@ public class EasierBackup extends JavaPlugin {
 			// Checks if the backup was aborted
 			if(!isRunning) {
 				actionBarHandler.stop();
+				AnnouncementHandler.sendAnnouncement(AnnouncementType.BACKUP_ABORTED);
+				
+				this.enableAutosave(autosaveWorlds);
+				
 				zipFile.delete();
 				this.getLogger().info("Backup aborted, file deleted");
-				this.enableAutosave(autosaveWorlds);
 				return;
 			}
 			
@@ -179,6 +187,8 @@ public class EasierBackup extends JavaPlugin {
 			this.executeTerminalCommands();
 			
 			actionBarHandler.stop();
+			AnnouncementHandler.sendAnnouncement(AnnouncementType.BACKUP_FINISHED);
+			
 			this.isRunning = false;
 		});
 	}
