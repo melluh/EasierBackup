@@ -60,7 +60,9 @@ public class EasierBackup extends JavaPlugin {
 			backupsFolder.mkdir();
 		}
 		
-		this.getCommand("easierbackup").setExecutor(new CommandHandler());
+		CommandHandler cmdHandler = new CommandHandler();
+		this.getCommand("easierbackup").setExecutor(cmdHandler);
+		this.getCommand("easierbackup").setTabCompleter(cmdHandler);
 	}
 	
 	@Override
