@@ -217,7 +217,7 @@ public class EasierBackup extends JavaPlugin {
 		
 		for(String consoleCmd : commands) {
 			try {
-				new ProcessBuilder("bash", "-c", consoleCmd).inheritIO().start();
+				Runtime.getRuntime().exec(consoleCmd);
 			} catch (IOException e) {
 				this.getLogger().log(Level.SEVERE, "Error occurred while attempting to execute terminal command", e);
 			}
