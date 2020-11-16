@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +37,8 @@ public class EasierBackup extends JavaPlugin {
 	private SimpleDateFormat dateFormat;
 	private int compressionLevel;
 	private long backupsFolderSize, maxBackupSize;
+	
+	private List<String> exemptFiles = new ArrayList<>();
 
 	private boolean isRunning;
 	private long completeSize, processedSize;
@@ -99,6 +103,11 @@ public class EasierBackup extends JavaPlugin {
 		} else {
 			this.maxBackupSize = (long) (configMaxBackupSize * 1073741824);
 			this.getLogger().info("Max backup folder size is set to " + readableFileSize(maxBackupSize));
+		}
+		
+		exemptFiles.clear();
+		for(String exemptFile : this.getConfig().getStringList("exempt")) {
+			exemptFiles.add(exemptFile.replace("/", FileSystems.getDefault().getSeparator()));
 		}
 		
 		scheduleHandler.load(this.getConfig().getConfigurationSection("schedule"));
@@ -384,7 +393,7 @@ public class EasierBackup extends JavaPlugin {
 			path = path.substring(2);
 		}
 		
-		return this.getConfig().getStringList("exempt").contains(path);
+		return exemptFiles.contains(path);
 	}
 	
 	public boolean isRunning() {
