@@ -403,7 +403,7 @@ public class EasierBackup extends JavaPlugin {
 		
 		// Files in the 'backups' folder are exempt
 		// The plugin shouldn't be making backups of backups
-		if(file.getParentFile() == backupsFolder)
+		if(backupsFolder.equals(file.getParentFile()))
 			return true;
 		
 		return exemptFiles.contains(path);
