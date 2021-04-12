@@ -3,8 +3,9 @@ package tech.mistermel.easierbackup.cmd;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bukkit.ChatColor;
@@ -25,9 +26,10 @@ public class ListSubCommand extends SubCommand {
 	@Override
 	public void onCommand(CommandSender sender, String[] args) {
 		File folder = EasierBackup.instance().getBackupsFolder();
-		Set<File> files = Arrays.stream(folder.listFiles())
+		List<File> files = Arrays.stream(folder.listFiles())
 				.filter(file -> file.isFile()) // Filter out folders
-				.collect(Collectors.toSet());
+				.sorted(Comparator.comparing(File::lastModified).reversed())
+				.collect(Collectors.toList());
 		
 		if(files.isEmpty()) {
 			sender.sendMessage(ChatColor.RED + "No backups made");
