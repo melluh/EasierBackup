@@ -25,7 +25,6 @@ max-backup-folder-size: 10
 # NOTE: If running on Windows, any forward slashes will automatically be
 #       replaced with backward slashes.
 exempt:
-  - 'backups'
   - 'logs'
   - 'cache'
   - 'server.jar'

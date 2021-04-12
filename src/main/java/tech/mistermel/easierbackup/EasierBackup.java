@@ -327,9 +327,8 @@ public class EasierBackup extends JavaPlugin {
 	}
 
 	private void addFolderToZip(File folder, String path, ZipOutputStream zipOut) {
-		if(this.isExempt(folder)) {
+		if(this.isExempt(folder))
 			return;
-		}
 
 		for(File file : folder.listFiles()) {
 			String filePath = (path.isEmpty() ? "" : path + "/") + file.getName();
@@ -348,9 +347,8 @@ public class EasierBackup extends JavaPlugin {
 	}
 
 	private void addFileToZip(File file, String path, ZipOutputStream zipOut) {
-		if(file.getName().equals("session.lock") || this.isExempt(file) || !isRunning) {
+		if(this.isExempt(file) || !isRunning)
 			return;
-		}
 
 		try {
 			FileInputStream fileIn = new FileInputStream(file);
@@ -392,6 +390,16 @@ public class EasierBackup extends JavaPlugin {
 		if(path.startsWith(".\\") || path.startsWith("./")) {
 			path = path.substring(2);
 		}
+		
+		// 'session.lock' is exempt
+		// Reading this file would cause an exception
+		if(file.getName().equals("session.lock"))
+			return true;
+		
+		// Files in the 'backups' folder are exempt
+		// The plugin shouldn't be making backups of backups
+		if(file.getParentFile() == backupsFolder)
+			return true;
 		
 		return exemptFiles.contains(path);
 	}
