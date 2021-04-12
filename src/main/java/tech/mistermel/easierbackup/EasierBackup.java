@@ -6,11 +6,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
@@ -382,7 +384,10 @@ public class EasierBackup extends JavaPlugin {
 	    
 	    final String[] units = new String[] { "B", "kB", "MB", "GB", "TB" };
 	    int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
-	    return new DecimalFormat("#.##").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+	    
+	    DecimalFormat df = new DecimalFormat("#.##");
+	    df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US)); // Use dots instead of commas
+	    return df.format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
 	}
 	
 	private boolean isExempt(File file) {

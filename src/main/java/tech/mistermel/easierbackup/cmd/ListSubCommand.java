@@ -14,7 +14,7 @@ import tech.mistermel.easierbackup.EasierBackup;
 
 public class ListSubCommand extends SubCommand {
 
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE dd MMM yyyy 'at' HH:mm");
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd MMM yyyy 'at' HH:mm");
 	
 	public ListSubCommand() {
 		this.setUsage("/backup list");
@@ -34,7 +34,7 @@ public class ListSubCommand extends SubCommand {
 			return;
 		}
 		
-		sender.sendMessage(ChatColor.GREEN + Integer.toString(files.size()) + " backups made:");
+		sender.sendMessage(ChatColor.GREEN + Integer.toString(files.size()) + " " + (files.size() == 1 ? "backup" : "backups") + " made:");
 		files.forEach(file -> sender.sendMessage(ChatColor.GRAY + "- " + this.formatFile(file)));
 	}
 	
