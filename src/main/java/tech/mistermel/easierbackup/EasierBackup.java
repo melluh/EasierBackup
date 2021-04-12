@@ -399,6 +399,13 @@ public class EasierBackup extends JavaPlugin {
 	public boolean isRunning() {
 		return isRunning;
 	}
+	
+	public File getBackupsFolder() {
+		if(!backupsFolder.isDirectory())
+			backupsFolder.mkdir();
+		
+		return backupsFolder;
+	}
 
 	public static EasierBackup instance() {
 		return instance;
