@@ -19,16 +19,16 @@ compression-level: 9
 max-backup-folder-size: 10
 
 # The files and folders specified here will not be included in a backup.
-# You can add more entries, but removing the ones included by default is
-# not recommended.
-#
-# NOTE: If running on Windows, any forward slashes will automatically be
-#       replaced with backward slashes.
+# You can either specify the exact file/folder (like 'logs' or 'server.jar'),
+# or use a wildcard (like 'plugins/*.jar')
 exempt:
   - 'logs'
   - 'cache'
   - 'server.jar'
   - 'plugins/dynmap/web/tiles'
+  
+  # Example of a wildcard: (uncomment to enable)
+  # - 'plugins/*.jar'
 
 # Specifies the interval in percent at which a progress update message gets sent.
 percentage-log-interval: 5
