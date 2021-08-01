@@ -14,6 +14,7 @@ import org.bukkit.util.StringUtil;
 public abstract class CommandBranch extends SubCommand {
 
 	private Map<String, SubCommand> subCommands = new HashMap<>();
+	private Map<String, SubCommand> aliases = new HashMap<>();
 	
 	@Override
 	public void onCommand(CommandSender sender, String[] args) {
@@ -27,7 +28,7 @@ public abstract class CommandBranch extends SubCommand {
 			return;
 		}
 		
-		SubCommand subCmd = subCommands.get(args[0]);
+		SubCommand subCmd = getSubCommand(args[0]);
 		if(subCmd == null) {
 			sender.sendMessage(ChatColor.RED + "Subcommand not found. Use " + getUsage() + " for a list of available subcommands.");
 			return;
@@ -51,7 +52,7 @@ public abstract class CommandBranch extends SubCommand {
 			return result;
 		}
 		
-		SubCommand subCmd = subCommands.get(args[0].toLowerCase());
+		SubCommand subCmd = getSubCommand(args[0].toLowerCase());
 		if(subCmd == null) {
 			return Collections.emptyList();
 		}
@@ -59,8 +60,19 @@ public abstract class CommandBranch extends SubCommand {
 		return subCmd.onTabComplete(sender, args);
 	}
 	
-	public void addSubCommand(String label, SubCommand subCmd) {
+	private SubCommand getSubCommand(String label) {
+		if(subCommands.containsKey(label))
+			return subCommands.get(label);
+		
+		if(aliases.containsKey(label))
+			return aliases.get(label);
+		
+		return null;
+	}
+	
+	public void addSubCommand(SubCommand subCmd, String label, String... aliases) {
 		subCommands.put(label, subCmd);
+		Arrays.stream(aliases).forEach(alias -> this.aliases.put(alias, subCmd));
 	}
 	
 }

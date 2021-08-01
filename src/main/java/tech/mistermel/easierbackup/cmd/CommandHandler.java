@@ -12,10 +12,10 @@ public class CommandHandler extends CommandBranch implements CommandExecutor, Ta
 	public CommandHandler() {
 		this.setUsage("/backup");
 		
-		this.addSubCommand("start", new StartSubCommand());
-		this.addSubCommand("reload", new ReloadSubCommand());
-		this.addSubCommand("abort", new AbortSubCommand());
-		this.addSubCommand("list", new ListSubCommand());
+		this.addSubCommand(new StartSubCommand(), "start", "create");
+		this.addSubCommand(new AbortSubCommand(), "abort", "stop", "cancel");
+		this.addSubCommand(new ReloadSubCommand(), "reload");
+		this.addSubCommand(new ListSubCommand(), "list");
 	}
 	
 	@Override
