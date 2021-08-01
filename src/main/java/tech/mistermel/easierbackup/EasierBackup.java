@@ -19,6 +19,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -148,24 +149,35 @@ public class EasierBackup extends JavaPlugin {
 			world.setAutoSave(false);
 		}
 		this.getLogger().info("Creating ZIP file, please wait...");
-		
-		String fileName = this.getConfig().getString("file-name").replace("%%date%%", dateFormat.format(new Date()));
-		File zipFile = new File(backupsFolder, fileName);
-
-		try {
-			zipFile.createNewFile();
-		} catch (IOException e) {
-			this.getLogger().log(Level.SEVERE, "Error occurred while attempting to create backup file", e);
-			this.isRunning = false;
-			return;
-		}
 
 		this.getServer().getScheduler().runTaskAsynchronously(this, () -> {			
+			String fileName = this.getConfig().getString("file-name").replace("%%date%%", dateFormat.format(new Date()));
+			File zipFile = new File(backupsFolder, fileName);
+			
+			if(zipFile.exists()) {
+				zipFile = this.findAlternative(zipFile);
+				if(zipFile == null) {
+					this.onBackupError(null, autosaveWorlds);
+					this.getLogger().log(Level.WARNING, "All file name alternatives for '" + fileName + "' in use - backup aborted");
+					return;
+				}
+				
+				this.getLogger().info("Using alternative name for backup file as default name is already in use: " + zipFile.getName());
+			}
+
+			try {
+				zipFile.createNewFile();
+			} catch (IOException e) {
+				this.onBackupError(zipFile, autosaveWorlds);
+				this.getLogger().log(Level.SEVERE, "Error occurred while attempting to create backup file", e);
+				return;
+			}
+			
 			try {
 				this.zipFolder(serverFolder, zipFile);
 			} catch (IOException e) {
+				this.onBackupError(zipFile, autosaveWorlds);
 				this.getLogger().log(Level.SEVERE, "Error occurred while attempting to create zip file", e);
-				this.isRunning = false;
 				return;
 			}
 			
@@ -181,14 +193,16 @@ public class EasierBackup extends JavaPlugin {
 				return;
 			}
 			
-			this.getLogger().info("ZIP file created (" + readableFileSize(completeSize) + " -> " + readableFileSize(zipFile.length()) + ")");
+			this.getLogger().info("Finished creating ZIP file (Compressed " + readableFileSize(completeSize) + " into " + readableFileSize(zipFile.length()) + ")");
+			this.enableAutosave(autosaveWorlds);
 			
 			int removedFiles = this.removeOldBackups();
 			if(removedFiles > 0) {
 				this.getLogger().info("Removed " + removedFiles + " old backup" + (removedFiles == 1 ? "" : "s") + ". Backup folder size is now " + readableFileSize(backupsFolderSize));
 			}
 			
-			this.enableAutosave(autosaveWorlds);
+			
+			this.getLogger().info(ChatColor.GREEN + "Your backup is ready! " + ChatColor.RESET + "You can find it at 'backups/" + zipFile.getName() + "'");
 			
 			this.getServer().getScheduler().runTask(this, () -> {
 				// Commands can only be dispatched synchronously
@@ -202,6 +216,39 @@ public class EasierBackup extends JavaPlugin {
 			
 			this.isRunning = false;
 		});
+	}
+	
+	private void onBackupError(File zipFile, Set<World> autosaveWorlds) {
+		this.getLogger().severe("Backup aborted due to an error");
+		this.isRunning = false;
+		
+		this.enableAutosave(autosaveWorlds);
+		actionBarHandler.stop();
+		
+		if(zipFile != null && zipFile.exists())
+			zipFile.delete();
+	}
+	
+	private File findAlternative(File file) {
+		char[] options = new char[] {'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+		int index = 0;
+		
+		File directory = file.getParentFile();
+		int extensionIndex = file.getName().lastIndexOf('.');
+		String fileName = file.getName().substring(0, extensionIndex);
+		String extension = file.getName().substring(extensionIndex, file.getName().length());
+		
+		while(true) {
+			file = new File(directory, fileName + options[index] + extension);
+			if(!file.exists())
+				break;
+			
+			index++;
+			if(index >= options.length)
+				return null;
+		}
+		
+		return file;
 	}
 	
 	private void enableAutosave(Set<World> autosaveWorlds) {
