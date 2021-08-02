@@ -1,5 +1,6 @@
 name: EasierBackup
 version: ${project.version}
+api-version: 1.13
 author: MisterMel
 main: tech.mistermel.easierbackup.EasierBackup
 commands:
