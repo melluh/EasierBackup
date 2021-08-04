@@ -19,7 +19,6 @@ import java.util.zip.ZipOutputStream;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import tech.mistermel.easierbackup.AnnouncementHandler.AnnouncementType;
@@ -40,7 +39,7 @@ public class EasierBackup extends JavaPlugin {
 	private int compressionLevel;
 	private long backupsFolderSize, maxBackupSize;
 	
-	private WildcardFileFilter fileFilter;
+	private Set<FileFilter> blacklist = new HashSet<>();
 
 	private boolean isRunning;
 	private long completeSize, processedSize;
@@ -107,8 +106,8 @@ public class EasierBackup extends JavaPlugin {
 			this.getLogger().info("Max backup folder size is set to " + readableFileSize(maxBackupSize));
 		}
 		
-		List<String> exemptRules = this.getConfig().getStringList("exempt");
-		this.fileFilter = new WildcardFileFilter(exemptRules);
+		blacklist.clear();
+		this.getConfig().getStringList("exempt").forEach(rule -> blacklist.add(new FileFilter(rule)));
 		
 		scheduleHandler.load(this.getConfig().getConfigurationSection("schedule"));
 	}
@@ -452,7 +451,13 @@ public class EasierBackup extends JavaPlugin {
 		
 		String relativePath = serverFolder.toPath().relativize(file.toPath()).toString();
 		relativePath = relativePath.replace(File.separatorChar, '/');
-		return fileFilter.accept(null, relativePath);
+		
+		for(FileFilter filter : blacklist) {
+			if(filter.matches(relativePath))
+				return true;
+		}
+		
+		return false;
 	}
 	
 	public boolean isRunning() {
