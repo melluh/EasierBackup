@@ -18,5 +18,5 @@ Every server owner should be backing up their server files, no matter the size o
 
 ### Getting Started
 1. Simply download & install the latest release (available on [SpigotMC](https://www.spigotmc.org/resources/easierbackup.82921/)) as you would any other plugin.
-2. Run ``/backup start`` to start creating your first backup. Players with the appropiate permission with see a progress bar in-game, and you will also see periodic status updates in the console log.
+2. Run ``/backup start`` to start creating your first backup. Players with the appropiate permission will see a progress bar in-game, and you will also see periodic status updates in the console log.
 3. Finished? You can see your new backup with ``/backup list``. Congrats, you're now one step closer to being protected from data loss! Check out the ``config.yml`` to customize your backups, like automatically running them at a specified time or excluding files you don't need.
